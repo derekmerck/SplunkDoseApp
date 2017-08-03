@@ -1,0 +1,30 @@
+[app/ui]
+version = 6.5.2
+modtime = 1501723679.971293000
+
+[app/launcher]
+version = 6.5.2
+modtime = 1501723679.972952000
+
+[views/CTDoseMonitoring]
+version = 6.6.2
+modtime = 1501755804.375397000
+
+[]
+access = read : [ * ], write : [ admin, power ]
+export = none
+version = 6.6.2
+modtime = 1501758450.722824000
+
+[views/CTDoseOutlierTickets]
+version = 6.6.2
+modtime = 1501759313.668038000
+
+[indexes/dose_incidents]
+owner = admin
+version = 6.6.2
+modtime = 1501759060.854006000
+
+[nav/default]
+version = 6.6.2
+modtime = 1501775643.111387000
