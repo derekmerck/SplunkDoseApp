@@ -1,4 +1,4 @@
-# ![logo](static/appIconAlt.png) Dose Monitoring with Splunk
+# ![logo](static/appIconAlt_2x.png) Dose Monitoring with Splunk
 
 [Derek Merck](email:derek_merck@brown.edu), Brown University and Rhode Island Hospital  
 [Scott Collins](email:scollins1@lifespan.org), Rhode Island Hospital  
