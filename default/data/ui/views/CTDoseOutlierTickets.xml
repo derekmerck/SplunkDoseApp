@@ -89,16 +89,32 @@ stats latest(status) as status values(comment) as comments values(user) as users
 $LOG_STATUS$ |
 join AccessionNumber [
     search index=$DOSE_INDEX$ | 
+    dedup AccessionNumber |
+    spath RequestedProcedureDescription |
+    spath RequestAttributesSequence{0}.RequestedProcedureDescription |
+    spath StationName |
+    spath "X-ray Radiation Dose Report.CT Acquisition{}.CT Dose.Mean CTDIvol" |
+    spath "X-Ray Radiation Dose Report.CT Acquisition{}.CT Dose.Mean CTDIvol" |
+    spath "X-ray Radiation Dose Report.CT Accumulated Dose Data.CT Dose Length Product Total" |
+    spath "X-Ray Radiation Dose Report.CT Accumulated Dose Data.CT Dose Length Product Total" |
+    spath "X-ray Radiation Dose Report.CT Acquisition{}.CT Acquisition Type" |  
+    spath "X-Ray Radiation Dose Report.CT Acquisition{}.CT Acquisition Type" |  
+
+    rename _time as study_time |
+
     eval mean_CTDIvol = coalesce( 'X-ray Radiation Dose Report.CT Acquisition{}.CT Dose.Mean CTDIvol', 'X-Ray Radiation Dose Report.CT Acquisition{}.CT Dose.Mean CTDIvol')  | 
     rename "X-Ray Radiation Dose Report.CT Acquisition{}.CT Acquisition Type" AS acq_type, "X-Ray Radiation Dose Report.CT Acquisition{}.CT Dose.Mean CTDIvol" AS mean_CTDIvol | 
     eval "Max CTDI"=max(mean_CTDIvol) |
-    spath RequestedProcedureDescription |
-    spath RequestAttributesSequence{0}.RequestedProcedureDescription |
-    eval RPD=`get_rpd` | 
+
     rename "X-Ray Radiation Dose Report.CT Accumulated Dose Data.CT Dose Length Product Total" as DLP |
-    rename _time as study_time |
-    lookup device_map.csv StationName OUTPUT InstitutionName Manufacturer AS _manu Location AS _loc  | 
-    eval Device=_loc." ("._manu.")"|
+
+    lookup $DEVICE_LUT$ StationName OUTPUT InstitutionName Modality Location Manufacturer RPDField | 
+    eval RPD=if(RPDField=="StudyDescription", 
+        StudyDescription, 
+        coalesce(RequestedProcedureDescription, 'ProcedureCodeSequence{}.CodeMeaning', 'RequestAttributesSequence{0}.RequestedProcedureDescription')) |
+    lookup $RPD_LUT$ RPD OUTPUT BodyPart Impact |
+    
+    eval Device=Location." (".Manufacturer.")"|
     table study_time AccessionNumber Device RPD InstitutionName OperatorsName DLP PatientID "Max CTDI"] |
     rename study_time as _time |
     sort limit=0 -_time | 

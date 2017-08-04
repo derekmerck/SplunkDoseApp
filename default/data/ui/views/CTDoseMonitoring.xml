@@ -1,9 +1,11 @@
 <form>
-  <label>Adult CT Dose Monitoring</label>
+  <label>CT Dose Monitoring</label>
   <init>
     <set token="DOSE_INDEX">dose_reports</set>
     <set token="DEVICE_LUT">device_map.csv</set>
     <set token="RPD_LUT">rpd_map.csv</set>
+    <set token="AGE_LABEL">Adult</set>
+    <set token="BODYPART_LABEL">Head</set>
   </init>
   <search id="base">
     <query>index=$DOSE_INDEX$ | 
@@ -19,7 +21,7 @@
       spath "X-Ray Radiation Dose Report.CT Acquisition{}.CT Acquisition Type" |  
       lookup $DEVICE_LUT$ StationName OUTPUT InstitutionName Modality Location Manufacturer RPDField | 
       where match(InstitutionName, "$MY_INST$") AND match(StationName, "$MY_STATION$") | 
-      search PatientAge&gt;"017Y" AND PatientAge&lt;"111Y" | 
+      search PatientAge&gt;=$AGE_BOTTOM|s$ AND PatientAge&lt;$AGE_TOP|s$ | 
       eval name=InstitutionName." ".Location." (".Manufacturer.")" |
       eval RPD=if(RPDField=="StudyDescription", 
           StudyDescription, 
@@ -51,7 +53,7 @@
       eval sig_mean_CTDIvol=mean_CTDIvol</query>
   </search>
   <search id="all_abd_spirals" base="all_abd">
-    <query></query>
+    <query/>
   </search>
   <fieldset submitButton="false">
     <input type="time" token="MY_TIME">
@@ -61,14 +63,41 @@
         <latest>now</latest>
       </default>
     </input>
+    <input type="dropdown" token="MY_AGE" searchWhenChanged="true">
+      <label>Patient Age</label>
+      <choice value="adult">Adult</choice>
+      <choice value="old_pediatric">Pediatric Adolescent</choice>
+      <choice value="young_pediatric">Pediatric Child</choice>
+      <default>adult</default>
+      <change>
+        <condition value="young_pediatric">
+          <set token="AGE_BOTTOM">000Y</set>
+          <set token="AGE_TOP">008Y</set>
+          <set token="AGE_LABEL">$label$</set>
+          <set token="fields.MY_BODYPART">$MY_BODYPART$</set>
+        </condition>
+        <condition value="old_pediatric">
+          <set token="AGE_BOTTOM">007Y</set>
+          <set token="AGE_TOP">018Y</set>
+          <set token="AGE_LABEL">$label$</set>
+          <set token="fields.MY_BODYPART">$MY_BODYPART$</set>
+        </condition>
+        <condition value="adult">
+          <set token="AGE_BOTTOM">018Y</set>
+          <set token="AGE_TOP">199Y</set>
+          <set token="AGE_LABEL">$label$</set>
+          <set token="fields.MY_BODYPART">$MY_BODYPART$</set>
+        </condition>
+      </change>
+    </input>
     <input type="dropdown" token="MY_BODYPART" searchWhenChanged="true">
       <label>Body Region</label>
       <choice value="abdomen">Abdomen Pelvis</choice>
       <choice value="head">Head</choice>
       <choice value="chest">Chest</choice>
-      <default>abdomen</default>
+      <default>head</default>
       <change>
-        <condition value="abdomen">
+        <condition match="$MY_AGE$==&quot;adult&quot; AND $MY_BODYPART$==&quot;abdomen&quot;">
           <set token="OUTLIER_THRESH">20</set>
           <set token="AAPM">25</set>
           <set token="ACR_MEDIAN">13</set>
@@ -76,7 +105,7 @@
           <set token="OUTLIER_COLORLUT">[13,20,25,30]</set>
           <set token="BODYPART_LABEL">$label$</set>
         </condition>
-        <condition value="head">
+        <condition match="$MY_AGE$==&quot;adult&quot; AND $MY_BODYPART$==&quot;head&quot;">
           <set token="OUTLIER_THRESH">50</set>
           <set token="AAPM">75</set>
           <set token="ACR_MEDIAN">50</set>
@@ -84,12 +113,60 @@
           <set token="OUTLIER_COLORLUT">[25,40,55,60]</set>
           <set token="BODYPART_LABEL">$label$</set>
         </condition>
-        <condition value="chest">
+        <condition match="$MY_AGE$==&quot;adult&quot; AND $MY_BODYPART$==&quot;chest&quot;">
           <set token="OUTLIER_THRESH">20</set>
           <set token="AAPM">25</set>
           <set token="ACR_MEDIAN">11</set>
           <set token="ACR_25TH">8</set>
           <set token="OUTLIER_COLORLUT">[11,20,25,30]</set>
+          <set token="BODYPART_LABEL">$label$</set>
+        </condition>
+        <condition match="$MY_AGE$==&quot;old_pediatric&quot; AND $MY_BODYPART$==&quot;abdomen&quot;">
+          <set token="OUTLIER_THRESH">10</set>
+          <set token="AAPM">15</set>
+          <set token="ACR_MEDIAN">5</set>
+          <set token="ACR_25TH">5</set>
+          <set token="OUTLIER_COLORLUT">[2,3,7,14]</set>
+          <set token="BODYPART_LABEL">$label$</set>
+        </condition>
+        <condition match="$MY_AGE$==&quot;old_pediatric&quot; AND $MY_BODYPART$==&quot;head&quot;">
+          <set token="OUTLIER_THRESH">45</set>
+          <set token="AAPM">60</set>
+          <set token="ACR_MEDIAN">40</set>
+          <set token="ACR_25TH">31</set>
+          <set token="OUTLIER_COLORLUT">[5,15,30,50]</set>
+          <set token="BODYPART_LABEL">$label$</set>
+        </condition>
+        <condition match="$MY_AGE$==&quot;old_pediatric&quot; AND $MY_BODYPART$==&quot;chest&quot;">
+          <set token="OUTLIER_THRESH">10</set>
+          <set token="AAPM">15</set>
+          <set token="ACR_MEDIAN">5</set>
+          <set token="ACR_25TH">5</set>
+          <set token="OUTLIER_COLORLUT">[2,3,7,14]</set>
+          <set token="BODYPART_LABEL">$label$</set>
+        </condition>
+        <condition match="$MY_AGE$==&quot;young_pediatric&quot; AND $MY_BODYPART$==&quot;abdomen&quot;">
+          <set token="OUTLIER_THRESH">5</set>
+          <set token="AAPM">15</set>
+          <set token="ACR_MEDIAN">3</set>
+          <set token="ACR_25TH">2</set>
+          <set token="OUTLIER_COLORLUT">[2,3,4,5]</set>
+          <set token="BODYPART_LABEL">$label$</set>
+        </condition>
+        <condition match="$MY_AGE$==&quot;young_pediatric&quot; AND $MY_BODYPART$==&quot;head&quot;">
+          <set token="OUTLIER_THRESH">30</set>
+          <set token="AAPM">60</set>
+          <set token="ACR_MEDIAN">25</set>
+          <set token="ACR_25TH">20</set>
+          <set token="OUTLIER_COLORLUT">[5,10,25,35]</set>
+          <set token="BODYPART_LABEL">$label$</set>
+        </condition>
+        <condition match="$MY_AGE$==&quot;young_pediatric&quot; AND $MY_BODYPART$==&quot;chest&quot;">
+          <set token="OUTLIER_THRESH">5</set>
+          <set token="AAPM">15</set>
+          <set token="ACR_MEDIAN">3</set>
+          <set token="ACR_25TH">2</set>
+          <set token="OUTLIER_COLORLUT">[2,3,4,5]</set>
           <set token="BODYPART_LABEL">$label$</set>
         </condition>
       </change>
@@ -126,7 +203,7 @@
   </fieldset>
   <row>
     <panel>
-      <title>All Adult $BODYPART_LABEL$ CT Count Piechart</title>
+      <title>All $AGE_LABEL$ $BODYPART_LABEL$ CT Count Piechart</title>
       <chart>
         <title>Graph of amount of ct scans of any adult protocols by scanner</title>
         <search base="all_abd" id="all_abd_by_name">
@@ -137,11 +214,11 @@
       </chart>
     </panel>
     <panel>
-      <title>All Adult $BODYPART_LABEL$ CT Count</title>
+      <title>All $AGE_LABEL$ $BODYPART_LABEL$ CT Count</title>
       <table>
         <title>Amount of ct scans of any adult protocols by scanner</title>
         <search base="all_abd_by_name">
-          <query></query>
+          <query/>
         </search>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">cell</option>
@@ -154,7 +231,7 @@
   </row>
   <row>
     <panel>
-      <title>Root Adult $BODYPART_LABEL$ CTDI by Scanner</title>
+      <title>Root $AGE_LABEL$ $BODYPART_LABEL$ CTDI by Scanner</title>
       <chart>
         <title>Comparison of CTDI of essential adult abdominal protocols by scanner</title>
         <search base="essential_abd">
@@ -169,9 +246,9 @@
       </chart>
     </panel>
     <panel>
-      <title>Root Adult $BODYPART_LABEL$ Count by Scanner</title>
+      <title>Root $AGE_LABEL$ $BODYPART_LABEL$ Count by Scanner</title>
       <chart>
-        <title>Count of CTDI of essential adult scans by scanner</title>
+        <title>Count of CTDI of essential scans by scanner</title>
         <search base="essential_abd">
           <query>| chart dc(AccessionNumber) AS count over name by RPD</query>
         </search>
@@ -206,9 +283,9 @@
   </row>
   <row>
     <panel>
-      <title>All Adult $BODYPART_LABEL$ CT by CTDI</title>
+      <title>All $AGE_LABEL$ $BODYPART_LABEL$ CT by CTDI</title>
       <chart>
-        <title>All adult ct scans in ctdi ascending order to view ranking of dose per slice by protocol</title>
+        <title>All ct scans in ctdi ascending order to view ranking of dose per slice by protocol</title>
         <search id="all_abd_by_ctdi" base="all_abd">
           <query>| stats count 
               min(sig_mean_CTDIvol) as "min CTDIvol"
@@ -248,11 +325,11 @@
       </chart>
     </panel>
     <panel>
-      <title>All Adult $BODYPART_LABEL$ CT by CTDI</title>
+      <title>All $AGE_LABEL$ $BODYPART_LABEL$ CT by CTDI</title>
       <table>
-        <title>All adult ct scans in ctdi ascending order to view ranking of dose per slice by protocol</title>
+        <title>All ct scans in ctdi ascending order to view ranking of dose per slice by protocol</title>
         <search base="all_abd_by_ctdi">
-          <query></query>
+          <query/>
         </search>
         <option name="count">40</option>
         <option name="dataOverlayMode">none</option>
@@ -268,9 +345,9 @@
   </row>
   <row>
     <panel>
-      <title>All Adult $BODYPART_LABEL$ CT by DLP</title>
+      <title>All $AGE_LABEL$ $BODYPART_LABEL$ CT by DLP</title>
       <chart>
-        <title>All adult ct spiral scans in dlp ascending order to view dose to patient by protocol</title>
+        <title>All ct spiral scans in dlp ascending order to view dose to patient by protocol</title>
         <search id="all_abd_by_dlp" base="all_abd">
           <query>| stats count 
               min(sig_mean_CTDIvol) as "min CTDIvol"
@@ -310,11 +387,11 @@
       </chart>
     </panel>
     <panel>
-      <title>All Adult $BODYPART_LABEL$ CT by DLP</title>
+      <title>All $AGE_LABEL$ $BODYPART_LABEL$ CT by DLP</title>
       <table>
-        <title>All adult ct spiral scans in dlp ascending order to view dose to patient by protocol</title>
+        <title>All ct spiral scans in dlp ascending order to view dose to patient by protocol</title>
         <search base="all_abd_by_dlp">
-          <query></query>
+          <query/>
         </search>
         <option name="count">40</option>
         <option name="dataOverlayMode">none</option>
@@ -330,9 +407,9 @@
   </row>
   <row>
     <panel>
-      <title>Adult $BODYPART_LABEL$ CT by CTDI with external bechmarks</title>
+      <title>$AGE_LABEL$ $BODYPART_LABEL$ CT by CTDI with external bechmarks</title>
       <chart>
-        <title>Max and average ctdi of adult spiral protocols compared to AAPM and ACR benchmarks</title>
+        <title>Max and average ctdi of spiral protocols compared to AAPM and ACR benchmarks</title>
         <search id="spirals" base="all_abd">
           <query>| stats count as "spiral count"
               max(sig_mean_CTDIvol) as "max CTDIvol"
@@ -375,7 +452,7 @@
       <table>
         <title>Max and average ctdi of adult abdominal spiral protocols compared to AAPM and ACR benchmarks</title>
         <search base="spirals">
-          <query></query>
+          <query/>
         </search>
         <option name="count">30</option>
         <option name="dataOverlayMode">none</option>
