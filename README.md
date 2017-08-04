@@ -1,7 +1,7 @@
 # ![logo](static/appIconAlt_2x.png) Dose Monitoring with Splunk
 
-[Derek Merck](email:derek_merck@brown.edu), Brown University and Rhode Island Hospital  
-[Scott Collins](email:scollins1@lifespan.org), Rhode Island Hospital  
+Derek Merck]<derek_merck@brown.edu>, Brown University and Rhode Island Hospital  
+Scott Collins, Rhode Island Hospital  
 Karen Laurie, The Miriam Hospital  
 
 <https://github.com/derekmerck/SplunkDoseApp>
@@ -29,15 +29,16 @@ It is intended to be used with [CopyDICOM][], a python script that can monitor a
 
 ## Setup
 
-1. Create indices for `dose_reports` and `dose_incidents`
-2. Create a `device_map.csv` file and an `rpd_map.csv` (procedure names) file (refer to RIH the maps in [lookups](lookups/))
-3. `ssh` into the Splunk server and install the dose app from github and your lookups
+1. Setup a Splunk instance.  (I prefer to use the [Splunk Docker container](https://hub.docker.com/r/splunk/splunk/) for quick deployments.)
+2. Create indices for `dose_reports` and `dose_incidents`
+3. Create a `device_map.csv` file and an `rpd_map.csv` (procedure names) file (refer to RIH the maps in [lookups](lookups/))
+4. Login to the Splunk server and install the dose app from github and your lookups
 
 ```
 $ cd /opt/Splunk/etc/apps
 $ mkdir dose
 $ cd dose
-$ git clone http://github.com/derekmerck/SplunkDoseMonitor
+$ git clone https://github.com/derekmerck/SplunkDoseApp.git
 $ cp my_device_map.csv lookups/device_map.csv
 $ cp my_rpd_map.csv lookups/rpd_map.csv
 ```
