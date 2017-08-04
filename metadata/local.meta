@@ -8,7 +8,7 @@ modtime = 1501723679.972952000
 
 [views/CTDoseMonitoring]
 version = 6.6.2
-modtime = 1501755804.375397000
+modtime = 1501874831.438608000
 
 []
 access = read : [ * ], write : [ admin, power ]
@@ -28,3 +28,16 @@ modtime = 1501759060.854006000
 [nav/default]
 version = 6.6.2
 modtime = 1501775643.111387000
+
+[views/vir_dose_monitoring]
+owner = admin
+version = 6.6.2
+modtime = 1501864752.176294000
+
+[props/SRDR_json]
+version = 6.6.2
+modtime = 1501859045.736725000
+
+[views/VIRDoseMonitoring]
+version = 6.6.2
+modtime = 1501871337.719145000
