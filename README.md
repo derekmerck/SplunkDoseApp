@@ -1,6 +1,6 @@
 # ![logo](static/appIconAlt_2x.png) Dose Monitoring with Splunk
 
-Derek Merck]<derek_merck@brown.edu>, Brown University and Rhode Island Hospital  
+Derek Merck <derek_merck@brown.edu>, Brown University and Rhode Island Hospital  
 Scott Collins, Rhode Island Hospital  
 Karen Laurie, The Miriam Hospital  
 
